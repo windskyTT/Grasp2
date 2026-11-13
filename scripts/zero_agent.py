@@ -35,7 +35,7 @@ import torch
 import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils import parse_env_cfg
 
-import Grasp2.tasks  # noqa: F401
+# PLACEHOLDER: Extension template (do not remove this comment)
 
 
 def main():

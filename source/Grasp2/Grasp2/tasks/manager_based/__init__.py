@@ -3,4 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-import gymnasium as gym  # noqa: F401
+# 初始化manager-based任务
+
+import gymnasium as gym  # noqa: F401 通知代码检查工具忽略“导入了但未使用”的警告。
+# 导入 Gymnasium，并设置别名为 gym

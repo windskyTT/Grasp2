@@ -7,6 +7,8 @@
 
 The functions can be passed to the :class:`isaaclab.managers.TerminationTermCfg` object to enable
 the termination introduced by the function.
+定义强化学习环境的终止条件（Termination Conditions）。
+在当前时间步结束时，是否应该结束某个并行环境中的本轮训练回合？
 """
 
 from __future__ import annotations
@@ -30,7 +32,10 @@ def object_reached_goal(
     robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
 ) -> torch.Tensor:
-    """Termination condition for the object reaching the goal position.
+    """
+    输入：机器人环境、目标命令名称、距离阈值、机器人配置和物体配置。
+    输出：每个并行环境中，物体是否已经进入目标位置附近的布尔值。
+    Termination condition for the object reaching the goal position.
 
     Args:
         env: The environment.
@@ -46,9 +51,9 @@ def object_reached_goal(
     command = env.command_manager.get_command(command_name)
     # compute the desired position in the world frame
     des_pos_b = command[:, :3]
-    des_pos_w, _ = combine_frame_transforms(robot.data.root_pos_w, robot.data.root_quat_w, des_pos_b)
+    des_pos_w, _ = combine_frame_transforms(robot.data.root_pos_w, robot.data.root_quat_w, des_pos_b) #把机器人基座坐标系下的目标位置转换到世界坐标系
     # distance of the end-effector to the object: (num_envs,)
-    distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1)
+    distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1) #计算方块到目标位置的距离
 
-    # rewarded if the object is lifted above the threshold
-    return distance < threshold
+    # rewarded if the object is lifted above the threshold 物体被抬升超过阈值时给予奖励
+    return distance < threshold # 实际返回的是：布尔张量（Boolean Tensor），数据类型为 torch.bool

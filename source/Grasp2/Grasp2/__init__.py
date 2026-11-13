@@ -5,6 +5,7 @@
 
 """
 Python module serving as a project/extension template.
+初始化根包，导入任务和UI扩展
 """
 
 # Register Gym environments.
