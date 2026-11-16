@@ -36,6 +36,7 @@ import gymnasium as gym
 from prettytable import PrettyTable
 
 import isaaclab_tasks  # noqa: F401
+import Grasp2  # noqa: F401
 
 
 def main():

@@ -56,11 +56,13 @@ gym.register(
     kwargs={
         "env_cfg_entry_point": f"{__name__}.ik_abs_env_cfg:FrankaCubeLiftEnvCfg",
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:LiftCubePPORunnerCfg",
+        "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
+        "rl_games_cfg_entry_point": f"{agents.__name__}:rl_games_ppo_cfg.yaml",
+        "sb3_cfg_entry_point": f"{agents.__name__}:sb3_ppo_cfg.yaml",
     },
     disable_env_checker=True,
 )
-# 注意，本段只注册环境配置，并没有填写 RSL-RL 等算法配置入口。
-# 不能简单认为所有已注册的 IK 环境都能直接使用同一个默认 PPO 训练配置。
+# Cube IK-Abs 使用上面注册的 PPO 配置；下面的 Teddy Bear 仅注册环境配置。
 
 gym.register(
     id="Isaac-Lift-Teddy-Bear-Franka-IK-Abs-v0",

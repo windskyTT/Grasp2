@@ -86,6 +86,8 @@ import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils.hydra import hydra_task_config
 from isaaclab_tasks.utils.parse_cfg import get_checkpoint_path
 
+import Grasp2  # noqa: F401
+
 # PLACEHOLDER: Extension template (do not remove this comment)
 
 

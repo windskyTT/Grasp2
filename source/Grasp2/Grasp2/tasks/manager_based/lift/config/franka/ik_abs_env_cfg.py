@@ -3,7 +3,9 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from isaaclab.assets import DeformableObjectCfg
+#绝对位姿逆运动学 给出末端到达的目标位置与姿态，IK控制器计算如何调节关节
+
+from isaaclab.assets import DeformableObjectCfg #配置可变形物体
 from isaaclab.controllers.differential_ik_cfg import DifferentialIKControllerCfg
 from isaaclab.envs.mdp.actions.actions_cfg import DifferentialInverseKinematicsActionCfg
 from isaaclab.managers import EventTermCfg as EventTerm
@@ -12,14 +14,14 @@ from isaaclab.sim.spawners import UsdFileCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
 
-import isaaclab_tasks.manager_based.manipulation.lift.mdp as mdp
+from ... import mdp
 
 from . import joint_pos_env_cfg
 
 ##
 # Pre-defined configs
 ##
-from isaaclab_assets.robots.franka import FRANKA_PANDA_HIGH_PD_CFG  # isort: skip
+from Grasp2.robots.franka import FRANKA_PANDA_HIGH_PD_CFG  # isort: skip
 
 
 ##
@@ -37,12 +39,12 @@ class FrankaCubeLiftEnvCfg(joint_pos_env_cfg.FrankaCubeLiftEnvCfg):
         # We switch here to a stiffer PD controller for IK tracking to be better.
         self.scene.robot = FRANKA_PANDA_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
-        # Set actions for the specific robot type (franka)
+        # Set actions for the specific robot type (franka) 替换机械臂动作配置
         self.actions.arm_action = DifferentialInverseKinematicsActionCfg(
             asset_name="robot",
             joint_names=["panda_joint.*"],
             body_name="panda_hand",
-            controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=False, ik_method="dls"),
+            controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=False, ik_method="dls"), #pose：控制目标完整位姿 使用绝对位姿模式 dls阻尼最小二乘法
             body_offset=DifferentialInverseKinematicsActionCfg.OffsetCfg(pos=[0.0, 0.0, 0.107]),
         )
 
@@ -79,14 +81,14 @@ class FrankaTeddyBearLiftEnvCfg(FrankaCubeLiftEnvCfg):
             ),
         )
 
-        # Make the end effector less stiff to not hurt the poor teddy bear
+        # Make the end effector less stiff to not hurt the poor teddy bear 降低夹抓刚度
         self.scene.robot.actuators["panda_hand"].effort_limit_sim = 50.0
         self.scene.robot.actuators["panda_hand"].stiffness = 40.0
         self.scene.robot.actuators["panda_hand"].damping = 10.0
 
-        # Disable replicate physics as it doesn't work for deformable objects
+        # Disable replicate physics as it doesn't work for deformable objects 对可变形物体关闭物理复制机制
         # FIXME: This should be fixed by the PhysX replication system.
-        self.scene.replicate_physics = False
+        self.scene.replicate_physics = False #关闭物理优化
 
         # Set events for the specific object type (deformable cube)
         self.events.reset_object_position = EventTerm(

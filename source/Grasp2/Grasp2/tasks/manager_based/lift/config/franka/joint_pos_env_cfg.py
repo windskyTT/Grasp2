@@ -14,14 +14,14 @@ from isaaclab.sim.spawners.from_files.from_files_cfg import UsdFileCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
-from isaaclab_tasks.manager_based.manipulation.lift import mdp
-from isaaclab_tasks.manager_based.manipulation.lift.lift_env_cfg import LiftEnvCfg
+from ... import mdp
+from ...lift_env_cfg import LiftEnvCfg
 
 ##
 # Pre-defined configs
 ##
 from isaaclab.markers.config import FRAME_MARKER_CFG  # isort: skip 导入用于显示坐标系的可视化标记配置
-from isaaclab_assets.robots.franka import FRANKA_PANDA_CFG  # isort: skip
+from Grasp2.robots.franka import FRANKA_PANDA_CFG, FRANKA_PANDA_HIGH_PD_CFG # isort: skip
 
 
 @configclass
@@ -31,12 +31,18 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
         super().__post_init__() # 调用父类 LiftEnvCfg 的初始化后处理函数
 
         # Set Franka as robot 将 Franka 设置为场景机器人
-        self.scene.robot = FRANKA_PANDA_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.robot = FRANKA_PANDA_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
         # PPO 输出的动作，究竟如何转换成 Franka 机械臂和二指夹爪的运动指令？
         # Set actions for the specific robot type (franka)
         self.actions.arm_action = mdp.JointPositionActionCfg( # 将机械臂动作配置设置为关节位置动作类型
-            asset_name="robot", joint_names=["panda_joint.*"], scale=0.5, use_default_offset=True #使用机器人默认关节位置作为动作偏移量
+            asset_name="robot", 
+            joint_names=["panda_joint.*"], 
+            scale={
+                "panda_joint[1357]":0.1, #零空间关节
+                "panda_joint[246]":0.3, #抬升
+                }, 
+            use_default_offset=True #使用机器人默认关节位置作为动作偏移量
         )
         self.actions.gripper_action = mdp.BinaryJointPositionActionCfg(
             asset_name="robot",

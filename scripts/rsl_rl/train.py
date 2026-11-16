@@ -116,7 +116,10 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 # import logger 创建日志记录器
 logger = logging.getLogger(__name__)
 
+import Grasp2  # noqa: F401
+
 # PLACEHOLDER: Extension template (do not remove this comment)
+import Grasp2.tasks  # noqa: F401
 
 torch.backends.cuda.matmul.allow_tf32 = True #允许 CUDA 矩阵乘法在支持的硬件和相应运算条件下使用 TF32。TF32 是 TensorFloat-32，一种面向部分矩阵计算的数值格式。它可以提高某些深度学习运算的吞吐率，但数值精度特性与完整 FP32 计算不同
 torch.backends.cudnn.allow_tf32 = True #允许 cuDNN 中支持的相关运算使用 TF32。 cuDNN 是 NVIDIA 的深度神经网络计算库

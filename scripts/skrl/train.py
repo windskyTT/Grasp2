@@ -117,6 +117,8 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 # import logger
 logger = logging.getLogger(__name__)
 
+import Grasp2  # noqa: F401
+
 # PLACEHOLDER: Extension template (do not remove this comment)
 
 # config shortcuts

@@ -161,7 +161,13 @@ class RewardsCfg:
     joint_vel = RewTerm( #定义关节速度惩罚
         func=mdp.joint_vel_l2, # 使用关节速度平方和函数
         weight=-1e-4,
-        params={"asset_cfg": SceneEntityCfg("robot")}, # 设定对象为机器人
+        params={"asset_cfg": SceneEntityCfg("robot",joint_names=["panda_joint.*"])}, # 设定对象为机器人
+    )
+
+    arm_posture=RewTerm( #关节偏离惩罚
+        func=mdp.joint_deviation_l1,
+        weight=-0.1,
+        params={"asset_cfg":SceneEntityCfg("robot",joint_names=["panda_joint[1357]"])},
     )
 
 
