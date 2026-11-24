@@ -1,7 +1,0 @@
-logs训练日志
-rsl_rl/franka_reach/2026-11-01_10-07-40 Isaaclab的原始代码
-rsl_rl/franka_lift/2026-11-02_09-24-45  Isaaclab的原始代码 使用joint position control关节位置控制
-rsl_rl/franka_lift/2026-11-13_12-17-39  Isaaclab的原始代码 使用IK Abs
-
-rsl_rl/franka_lift/2026-11-14_19-38-59
-arm_action scale缩小，添加关节偏移惩罚，机器人换成FRANKA_PANDA_HIGH_PD_CFG，

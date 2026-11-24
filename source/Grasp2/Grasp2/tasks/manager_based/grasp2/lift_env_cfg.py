@@ -93,7 +93,8 @@ class ActionsCfg:
     # will be set by agent env cfg
     # 	声明机械臂动作接口，允许使用关节位置控制或者微分逆运动学控制
     arm_action: mdp.JointPositionActionCfg | mdp.DifferentialInverseKinematicsActionCfg = MISSING
-    gripper_action: mdp.BinaryJointPositionActionCfg = MISSING # 声明夹爪动作接口，采用二值关节位置动作配置类型
+    # 末端执行器动作接口：二指夹爪用二值关节位置动作；Inspire 灵巧手用连续关节位置动作（6 个主动关节）
+    gripper_action: mdp.BinaryJointPositionActionCfg | mdp.JointPositionActionCfg = MISSING
 
 
 @configclass
@@ -143,20 +144,31 @@ class RewardsCfg:
 
     lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.04}, weight=15.0) # 物体抬升奖励
 
+    # 目标跟踪：物体高于 minimal_height 且 拇指+另一根手指接触物体 时才给奖励（接触门控，仿照 Dexsuite）
     object_goal_tracking = RewTerm( #定义目标位置追踪奖励
         func=mdp.object_goal_distance, # 使用物体到目标位置距离的奖励函数
-        params={"std": 0.3, "minimal_height": 0.04, "command_name": "object_pose"},
+        params={
+            "std": 0.3,
+            "minimal_height": 0.04,
+            "command_name": "object_pose",
+            "contact_sensor_cfg": SceneEntityCfg("finger_object_contact"),
+        },
         weight=16.0,
     )
 
     object_goal_tracking_fine_grained = RewTerm( #定义精细目标追踪奖励
         func=mdp.object_goal_distance,
-        params={"std": 0.05, "minimal_height": 0.04, "command_name": "object_pose"},
+        params={
+            "std": 0.05,
+            "minimal_height": 0.04,
+            "command_name": "object_pose",
+            "contact_sensor_cfg": SceneEntityCfg("finger_object_contact"),
+        },
         weight=5.0,
     )
 
-    # action penalty 动作惩罚
-    action_rate = RewTerm(func=mdp.action_rate_l2, weight=-1e-4)
+    # action penalty 动作惩罚（截断到 1000，仿照 Dexsuite，防止动作突变时惩罚爆炸）
+    action_rate = RewTerm(func=mdp.action_rate_l2_clamped, weight=-1e-4)
 
     joint_vel = RewTerm( #定义关节速度惩罚
         func=mdp.joint_vel_l2, # 使用关节速度平方和函数
@@ -168,6 +180,54 @@ class RewardsCfg:
         func=mdp.joint_deviation_l1,
         weight=-0.1,
         params={"asset_cfg":SceneEntityCfg("robot",joint_names=["panda_joint[1357]"])},
+    )
+
+    # 机械臂关节靠近极限惩罚：任一关节离极限不足 0.3 rad 时开始扣分，压在极限上每个关节扣满 1。
+    # run 2026-11-23_11-06-47 持握时 panda_joint4（肘）压在下限、panda_joint6（腕）压在上限，手臂挤成一团。
+    arm_joint_limit = RewTerm(
+        func=mdp.joint_limit_margin,
+        weight=-2.0,
+        params={"margin": 0.3, "asset_cfg": SceneEntityCfg("robot", joint_names=["panda_joint.*"])},
+    )
+
+    # ---------------- 灵巧手抓取奖励（Inspire RH56DFX） ----------------
+    # 指尖接近物体：5 个指尖到物体中心的平均距离，抓握中心距物体 < 8 cm 时才生效
+    fingertip_reaching = RewTerm(
+        func=mdp.fingertips_object_distance,
+        weight=2.0,
+        params={
+            "std": 0.05,
+            "gate_distance": 0.08,
+            "robot_cfg": SceneEntityCfg(
+                "robot", body_names=["rh_thumb_tip", "rh_index_tip", "rh_middle_tip", "rh_ring_tip", "rh_little_tip"]
+            ),
+        },
+    )
+
+    # 有效抓握接触（仿照 Dexsuite good_finger_contact，替换原来的 hand_closure 握拳奖励）：
+    # 拇指 + 至少一根其他手指接触物体（> 1 N）时奖励 1。
+    # 原 hand_closure 只看手指闭合角度，旧策略学会了手掌压住方块、手指空握到关节极限来刷分。
+    good_finger_contact = RewTerm(
+        func=mdp.good_finger_contact,
+        weight=2.0,
+        params={"threshold": 1.0, "sensor_cfg": SceneEntityCfg("finger_object_contact")},
+    )
+
+    # 机械臂接触惩罚：只允许灵巧手接触桌面/物体。
+    # 统计 panda_link1~7 中接触力 > 1 N 的连杆个数（每步 0~7），乘以权重。
+    # 需要场景中有名为 arm_contact 的接触传感器（在 franka_inspire/joint_pos_env_cfg.py 中定义）。
+    # panda_link0 是固定在桌上的底座，不计入。
+    arm_contact_penalty = RewTerm(
+        func=mdp.undesired_contacts,
+        weight=-2.0,
+        params={"threshold": 1.0, "sensor_cfg": SceneEntityCfg("arm_contact", body_names="panda_link[1-7]")},
+    )
+
+    # 手指关节速度惩罚（与机械臂 joint_vel 相同量级），减少手指抖动
+    hand_joint_vel = RewTerm(
+        func=mdp.joint_vel_l2,
+        weight=-1e-4,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["rh_thumb_[12]_joint", "rh_(index|middle|ring|little)_1_joint"])},
     )
 
 

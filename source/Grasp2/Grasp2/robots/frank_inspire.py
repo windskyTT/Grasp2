@@ -11,8 +11,8 @@
 * :obj:`FRANKA_INSPIRE_HIGH_PD_CFG`: 机械臂使用更高 PD 增益并关闭重力（适合关节位置控制/IK 控制）
 
 模型来源:
-    assets/robots/franka/franka_inspire/franka_inspire.usd
-    由 assets/robots/franka/build_franka_inspire_urdf.py + convert_franka_inspire_usd.py 生成。
+    assets/robots/franka_inspire/franka_inspire.usd
+    由 assets/robots/build_franka_inspire_urdf.py + convert_franka_inspire_usd.py 生成。
 
 关节说明（共 19 个，可通过 robot.joint_names 查看）:
     机械臂 7 个:      panda_joint1 ~ panda_joint7
@@ -40,7 +40,7 @@ from isaaclab.assets.articulation import ArticulationCfg
 
 # 项目根目录: .../Grasp2/source/Grasp2/Grasp2/robots/frank_inspire.py -> parents[4] = .../Grasp2
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
-FRANKA_INSPIRE_USD_PATH = str(_PROJECT_ROOT / "assets/robots/franka/franka_inspire/franka_inspire.usd")
+FRANKA_INSPIRE_USD_PATH = str(_PROJECT_ROOT / "assets/robots/franka_inspire/franka_inspire.usd")
 
 # 灵巧手关节名（正则）
 INSPIRE_ACTIVE_JOINTS = ["rh_thumb_[12]_joint", "rh_(index|middle|ring|little)_1_joint"]
@@ -65,7 +65,7 @@ FRANKA_INSPIRE_CFG = ArticulationCfg(
         activate_contact_sensors=False,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
-            max_depenetration_velocity=5.0,
+            max_depenetration_velocity=5.0, #最大穿透修正速度
         ),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
             # 手指之间（尤其拇指对掌时与手掌）距离很近，开启自碰撞容易互相卡住/抖动，先关闭。
